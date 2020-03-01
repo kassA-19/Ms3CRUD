@@ -1,0 +1,48 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<types:mule xmlns:types="http://www.mulesoft.org/schema/mule/types">
+  <types:catalog>
+    <types:type name="jsonType" format="json">
+      <types:shape format="weave" example="examples/Ms3input-1.json"><![CDATA[%dw 2.0
+
+type jsonType = {|
+  Identification: {|
+    IDnumber: Number {"typeId": "int"}, 
+    FirstName: String, 
+    LastName: String, 
+    DOB: String, 
+    Gender: String, 
+    Title: String, 
+    "AddressType ": String, 
+    HouseNumber: Number {"typeId": "int"}, 
+    street: String, 
+    Unit: String, 
+    City: String, 
+    State: String, 
+    zipcode: String, 
+    Email: String, 
+    PhoneNumber: String
+  |}
+|} {"example": "{\\\"Identification\\\":{\\\"IDnumber\\\":1,\\\"FirstName\\\":\\\"Bob\\\",\\\"LastName\\\":\\\"Frederick\\\",\\\"DOB\\\":\\\"06\\/21\\/1980\\\",\\\"Gender\\\":\\\"M\\\",\\\"Title\\\":\\\"Manager\\\",\\\"AddressType \\\":\\\"home\\\",\\\"HouseNumber\\\":1234,\\\"street\\\":\\\"blah blah St\\\",\\\"Unit\\\":\\\"1 a\\\",\\\"City\\\":\\\"Somewhere\\\",\\\"State\\\":\\\"WV\\\",\\\"zipcode\\\":\\\"12345\\\",\\\"Email\\\":\\\"bfe@sample.com\\\",\\\"PhoneNumber\\\":\\\"304-555-8282\\\"}}"}
+
+]]></types:shape>
+    </types:type>
+  </types:catalog>
+  <types:enrichment select="#601ca42e-ad7b-47c3-9517-6910993954d6">
+    <types:processor-declaration>
+      <types:input-event>
+        <types:message>
+          <types:payload type="jsonType"/>
+        </types:message>
+      </types:input-event>
+    </types:processor-declaration>
+  </types:enrichment>
+  <types:enrichment select="#6685ac39-994b-42b6-b2cb-c0420f2b7bb9">
+    <types:processor-declaration>
+      <types:output-event>
+        <types:message>
+          <types:payload type="jsonType"/>
+        </types:message>
+      </types:output-event>
+    </types:processor-declaration>
+  </types:enrichment>
+</types:mule>

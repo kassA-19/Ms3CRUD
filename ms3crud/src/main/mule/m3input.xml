@@ -1,0 +1,236 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd  http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+    <http:listener-config name="m3input-httpListenerConfig">
+        <http:listener-connection host="0.0.0.0" port="8081" />
+    </http:listener-config>
+    <apikit:config name="m3input-config" api="m3input.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
+    <db:config name="Database_Config1" doc:name="Database Config" doc:id="d3c54502-beb5-4bec-a6eb-0ba0039a926f">
+        <db:my-sql-connection host="localhost" port="3306" user="root" password="Admin" database="ms3" />
+    </db:config>
+    <flow name="m3input-main">
+        <http:listener config-ref="m3input-httpListenerConfig" path="/api/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body>#[payload]</http:body>
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:router config-ref="m3input-config" />
+        <error-handler>
+            <on-error-propagate type="APIKIT:BAD_REQUEST">
+                <ee:transform xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Bad request"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">400</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_FOUND">
+                <ee:transform xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Resource not found"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">404</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:METHOD_NOT_ALLOWED">
+                <ee:transform xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Method not allowed"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">405</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_ACCEPTABLE">
+                <ee:transform xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Not acceptable"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">406</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:UNSUPPORTED_MEDIA_TYPE">
+                <ee:transform xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Unsupported media type"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">415</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_IMPLEMENTED">
+                <ee:transform xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Not Implemented"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">501</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+        </error-handler>
+    </flow>
+    <flow name="m3input-console">
+        <http:listener config-ref="m3input-httpListenerConfig" path="/console/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body>#[payload]</http:body>
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:console config-ref="m3input-config" />
+        <error-handler>
+            <on-error-propagate type="APIKIT:NOT_FOUND">
+                <ee:transform xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Resource not found"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">404</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+        </error-handler>
+    </flow>
+    <flow name="put:\UpdatingCustomer\(CustomerId):m3input-config">
+        <db:update doc:name="Update" doc:id="27ee84e5-e245-4aae-b7b2-8fdace6980fe" config-ref="Database_Config1">
+            <db:sql>UPDATE ms3.Customer 
+SET DOB =:DOB, FirstName =:FirstName, AddressType =:AddressType, HomeNumber =:HomeNumber, Street =:Street, City =:City, State =:State, Zipcode =:Zipcode, Email =:Email, PhoneNumber =:PhoneNumber, Unit =:Unit, LastName =:LastName, Title =:Title, Gender =:Gender
+WHERE ID =:id</db:sql>
+            <db:input-parameters><![CDATA[#[{
+	'DOB': payload.DOB,
+	'State': payload.State,
+	'Email': payload.Email,
+	'PhoneNumber': payload.PhoneNumber,
+	'Zipcode': payload.Zipcode,
+	'City': payload.City,
+	'Street': payload.Street,
+	'HomeNumber': payload.HomeNumber,
+	'FirstName': payload.FirstName,
+	'AddressType': payload.AddressType,
+	'Title': payload.Title,
+	'Gender': payload.Gender,
+	'Unit': payload.Unit,
+	'LastName': payload.LastName,
+	id: message.attributes.uriParams.CustomerId
+}]]]></db:input-parameters>
+        </db:update>
+        <ee:transform doc:name="Transform Message" doc:id="19c7defb-0d34-459b-9322-8424e45ea88f">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+ payload]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+        <logger level="INFO" doc:name="Logger" doc:id="6c8c7766-24ab-46bc-b23d-50c2a0f1e98b" message="#[payload]" />
+    </flow>
+    <flow name="delete:\CustomerDelete\(CustomerId):m3input-config">
+        <db:delete doc:name="Delete" doc:id="ff8b615d-09d7-434e-ae36-9e9c6d3ff093" config-ref="Database_Config1">
+            <db:sql>DELETE FROM ms3.Customer WHERE ID=:id</db:sql>
+            <db:input-parameters><![CDATA[#[{
+	id: message.attributes.uriParams.CustomerId
+}]]]></db:input-parameters>
+        </db:delete>
+        <logger level="INFO" doc:name="Logger" doc:id="90c206f9-5a62-4e5a-9db1-7e8c011662fc" message="Customer Deleted Successfully" />
+    </flow>
+    <flow name="get:\GetCustomer:m3input-config">
+        <db:select doc:name="Select" doc:id="681c1c71-53bf-4957-84bb-7eba94b1584a" config-ref="Database_Config1">
+            <db:sql>SELECT * FROM ms3.Customer where ID=:id</db:sql>
+            <db:input-parameters><![CDATA[#[{
+	id: message.attributes.queryParams.Id
+}]]]></db:input-parameters>
+        </db:select>
+        <ee:transform xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd" doc:id="6685ac39-994b-42b6-b2cb-c0420f2b7bb9">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	Identification: {
+		IDnumber: payload[0].ID,
+		FirstName: payload[0].FirstName default "",
+		LastName: payload[0].LastName default "",
+		DOB: payload[0].DOB default "",
+		Gender: payload[0].Gender default "",
+		Title: payload[0].Title default "",
+		"AddressType ": payload[0].AddressType default "",
+		HouseNumber: payload[0].HomeNumber default 0,
+		street: payload[0].Street default "",
+		Unit: payload[0].Unit default "",
+		City: payload[0].City default "",
+		State: payload[0].State default "",
+		zipcode: payload[0].Zipcode default "",
+		Email: payload[0].Email default "",
+		PhoneNumber: payload[0].PhoneNumber default ""
+	}
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+        <logger level="INFO" doc:name="Logger" doc:id="cfe5c539-76b7-4eb9-9dcf-2bbd7950b5f3" message="Customer Info Pulled Successfully" />
+    </flow>
+    <flow name="post:\customerCreate:application\json:m3input-config">
+        <ee:transform xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd" doc:id="601ca42e-ad7b-47c3-9517-6910993954d6">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/java
+---
+[{
+	Email: payload.Identification.Email,
+	FirstName: payload.Identification.FirstName,
+	ZipCode: payload.Identification.zipcode,
+	Title: payload.Identification.Title,
+	Gender: payload.Identification.Gender,
+	City: payload.Identification.City,
+	Unit: payload.Identification.Unit,
+	DOB: payload.Identification.DOB,
+	State: payload.Identification.State,
+	AddressNumber: payload.Identification.HouseNumber as String,
+	Street: payload.Identification.street,
+	PhoneNumber: payload.Identification.PhoneNumber,
+	ID: payload.Identification.IDnumber,
+	LastName: payload.Identification.LastName,
+	AddressType: payload.Identification."AddressType "
+}]]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+        <db:bulk-insert doc:name="Bulk insert" doc:id="183cdbfd-5847-4115-92c2-98037bced2c6" config-ref="Database_Config1">
+            <db:sql>insert into ms3.Customer values (:ID, :FirstName, :LastName, :DOB, :Gender, :Title, :AddressType, :AddressNumber, :Street, :Unit, :City, :State, :ZipCode, :Email, :PhoneNumber)</db:sql>
+        </db:bulk-insert>
+        <logger level="INFO" doc:name="Logger" doc:id="52729f90-b57b-42ff-81a1-08b09a9a637f" message="Customer Created Successfully" />
+    </flow>
+</mule>

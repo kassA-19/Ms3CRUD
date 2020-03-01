@@ -1,0 +1,19 @@
+{
+	"Identification": {
+		"IDnumber": 1,
+		"FirstName": "Bob",
+		"LastName": "Frederick",
+		"DOB": "06/21/1980",
+		"Gender": "M",
+		"Title": "Manager",
+		"AddressType ": "home",
+		"HouseNumber": 1234,
+		"street": "blah blah St",
+		"Unit": "1 a",
+		"City": "Somewhere",
+		"State": "WV",
+		"zipcode": "12345",
+		"Email": "bfe@sample.com",
+		"PhoneNumber": "304-555-8282"
+	}
+}
