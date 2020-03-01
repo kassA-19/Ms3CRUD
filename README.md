@@ -1,5 +1,5 @@
 CRUD
-#path to xml file: /Ms3CRUD/ms3crud/src/main/mule/m3input.xm
+#path to xml file: /Ms3CRUD/ms3crud/src/main/mule/m3input.xml
 
 # # This API has four Specification 
 
